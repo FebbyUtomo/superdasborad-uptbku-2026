@@ -2,13 +2,26 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>UPT Bengkulu Command</title>
+    <title>PLN UPT Bengkulu Command</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+    <style>
+        .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .glow { box-shadow: 0 0 15px rgba(37, 99, 235, 0.3); }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-6">
-    <header class="mb-10 text-center"><h1 class="text-3xl font-black text-blue-500 uppercase tracking-widest">Command Center</h1></header>
-    <div id="grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-8">
+    <header class="mb-12 flex justify-between items-center">
+        <div>
+            <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">UPT BENGKULU</h1>
+            <p class="text-blue-500 font-mono tracking-widest text-sm">SYSTEM STATUS: <span id="time" class="text-white">LIVE</span></p>
+        </div>
+        <div class="animate-pulse bg-blue-600 px-4 py-2 rounded-full text-xs font-bold">● SYSTEM ONLINE</div>
+    </header>
+
+    <div id="grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Cards Auto-Generated -->
+    </div>
 
     <script>
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/1GcyqF-CRESZyPRbeSObV7SWF-MseWjJtOmofF_4nPjQ/export?format=csv&gid=1877466739';
@@ -16,15 +29,17 @@
         Papa.parse(sheetUrl, {
             download: true,
             complete: function(results) {
-                const data = results.data.slice(9); // Skip header
                 const grid = document.getElementById('grid');
-                data.forEach(row => {
-                    if(row[1] && row[1].length > 1) {
+                results.data.forEach(row => {
+                    if(row[1] && row[1].match(/^\d+$/)) {
+                        const isGood = parseFloat(row[9].replace(',','.')) >= parseFloat(row[8].replace(',','.') || 0);
                         grid.innerHTML += `
-                            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                                <h3 class="text-[10px] font-bold text-slate-500 uppercase">${row[1]}</h3>
-                                <div class="text-xl font-mono">${row[9] || '0'}</div>
-                                <div class="text-[10px] text-emerald-400">Target: ${row[8] || '0'}</div>
+                            <div class="glass p-6 rounded-3xl transform transition hover:scale-105 cursor-pointer glow">
+                                <h3 class="text-[10px] uppercase text-slate-400 mb-2 truncate">${row[2] || 'Indikator'}</h3>
+                                <div class="text-3xl font-black mb-1">${row[9] || '0'}</div>
+                                <div class="text-[10px] uppercase ${isGood ? 'text-emerald-400' : 'text-red-400'} font-bold">
+                                    ${isGood ? '✓ TARGET AMAN' : '⚠ PERLU TINDAKAN'}
+                                </div>
                             </div>`;
                     }
                 });
@@ -33,4 +48,3 @@
     </script>
 </body>
 </html>
-
