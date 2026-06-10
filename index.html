@@ -1,15 +1,13 @@
-```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Kinerja UPT Bengkulu</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .pln-blue { color: #0076c8; }
         .bg-pln { background-color: #0076c8; }
-        tr:nth-child(even) { background-color: #f8fafc; }
+        tbody tr:nth-child(even) { background-color: #f8fafc; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans">
@@ -23,7 +21,7 @@
             <table class="w-full text-left text-sm">
                 <thead class="bg-blue-600 text-white uppercase text-[11px] tracking-wider">
                     <tr>
-                        <th class="p-4">No</th>
+                        <th class="p-4 w-16">No</th>
                         <th class="p-4">Indikator Kinerja</th>
                         <th class="p-4 text-center">Target S.D Mei</th>
                         <th class="p-4 text-center">Realisasi S.D Mei</th>
@@ -45,28 +43,31 @@
             download: true,
             complete: function(results) {
                 const tbody = document.getElementById('data-body');
-                // Baris ke-9 header, data mulai index 9
+                // Data mulai dari baris setelah header (index 9)
                 results.data.slice(9).forEach((row) => {
-                    // Filter baris yang punya indikator (row index 1)
-                    if(row[1] && row[1].trim() !== "" && row[1].length > 1) {
+                    const no = row[1] ? row[1].trim() : "";
+                    const indikator = row[2] ? row[2].trim() : "";
+                    
+                    // Hanya tampilkan baris yang punya nomor urut atau indikator
+                    if(no !== "" && (no.match(/^\d+$/) || no.match(/^[a-z]$/))) {
                         const target = row[8] || '-';
                         const real = row[9] || '-';
                         
-                        // Logika status sederhana (jika real >= target maka baik)
+                        // Logika status: Jika target angka dan realisasi >= target
                         const isGood = parseFloat(real.replace(',','.')) >= parseFloat(target.replace(',','.') || 0);
                         
                         tbody.innerHTML += `
                             <tr class="hover:bg-blue-50 transition-colors">
-                                <td class="p-4 font-bold text-slate-400">${row[1]}</td>
-                                <td class="p-4 font-medium">${row[2] || '-'}</td>
+                                <td class="p-4 font-bold text-slate-400">${no}</td>
+                                <td class="p-4 font-medium">${indikator}</td>
                                 <td class="p-4 text-center">${target}</td>
                                 <td class="p-4 text-center font-bold text-blue-700">${real}</td>
                                 <td class="p-4 text-center">
                                     <span class="px-3 py-1 rounded-full text-[10px] font-bold ${isGood ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
                                         ${isGood ? 'BAIK' : 'AWAS'}
                                     </span>
-                                </td>
-                            </tr>`;
+                                    /td>
+                            </tr>;
                     }
                 });
             }
@@ -74,4 +75,4 @@
     </script>
 </body>
 </html>
-```
+`
