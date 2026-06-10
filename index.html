@@ -2,45 +2,70 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>PLN UPT Bengkulu Command</title>
+    <title>Dashboard Kinerja UPT Bengkulu</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
     <style>
-        .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-        .glow { box-shadow: 0 0 15px rgba(37, 99, 235, 0.3); }
+        .pln-blue { color: #0076c8; }
+        .bg-pln { background-color: #0076c8; }
+        tbody tr:nth-child(even) { background-color: #f8fafc; }
+        .status-baik { background-color: #dcfce7; color: #166534; }
+        .status-masalah { background-color: #fee2e2; color: #991b1b; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-8">
-    <header class="mb-12 flex justify-between items-center">
-        <div>
-            <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">UPT BENGKULU</h1>
-            <p class="text-blue-500 font-mono tracking-widest text-sm">SYSTEM STATUS: <span id="time" class="text-white">LIVE</span></p>
+<body class="bg-slate-50 text-slate-900 font-sans p-6">
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-6 border-b-4 border-blue-600 pb-4">
+            <h1 class="text-2xl font-black pln-blue">PT PLN (PERSERO) - UPT BENGKULU</h1>
+            <p class="text-[10px] font-bold text-slate-500 uppercase">Dashboard Kinerja Operasional (Mei 2026)</p>
+        </header>
+        <div class="overflow-x-auto bg-white rounded-lg shadow-sm border border-slate-200">
+            <table class="w-full text-[10px] text-left border-collapse">
+                <thead class="bg-blue-900 text-white uppercase">
+                    <tr>
+                        <th class="p-2 border">NO</th>
+                        <th class="p-2 border">INDIKATOR KINERJA</th>
+                        <th class="p-2 border text-center">BOBOT</th>
+                        <th class="p-2 border text-center">TARGET S.D MEI</th>
+                        <th class="p-2 border text-center">REALISASI S.D MEI</th>
+                        <th class="p-2 border text-center">STATUS</th>
+                    </tr>
+                </thead>
+                <tbody id="data-body" class="divide-y divide-slate-200">
+                    <tr><td colspan="6" class="p-8 text-center text-slate-400">Loading data...</td></tr>
+                </tbody>
+            </table>
         </div>
-        <div class="animate-pulse bg-blue-600 px-4 py-2 rounded-full text-xs font-bold">● SYSTEM ONLINE</div>
-    </header>
-
-    <div id="grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Cards Auto-Generated -->
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
     <script>
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/1GcyqF-CRESZyPRbeSObV7SWF-MseWjJtOmofF_4nPjQ/export?format=csv&gid=1877466739';
-        
         Papa.parse(sheetUrl, {
             download: true,
             complete: function(results) {
-                const grid = document.getElementById('grid');
-                results.data.forEach(row => {
-                    if(row[1] && row[1].match(/^\d+$/)) {
-                        const isGood = parseFloat(row[9].replace(',','.')) >= parseFloat(row[8].replace(',','.') || 0);
-                        grid.innerHTML += `
-                            <div class="glass p-6 rounded-3xl transform transition hover:scale-105 cursor-pointer glow">
-                                <h3 class="text-[10px] uppercase text-slate-400 mb-2 truncate">${row[2] || 'Indikator'}</h3>
-                                <div class="text-3xl font-black mb-1">${row[9] || '0'}</div>
-                                <div class="text-[10px] uppercase ${isGood ? 'text-emerald-400' : 'text-red-400'} font-bold">
-                                    ${isGood ? '✓ TARGET AMAN' : '⚠ PERLU TINDAKAN'}
-                                </div>
-                            </div>`;
+                const tbody = document.getElementById('data-body');
+                tbody.innerHTML = '';
+                results.data.forEach((row) => {
+                    if(row[1] && row[2]) {
+                        const no = row[1];
+                        const ind = row[2];
+                        const bobot = row[3] || '-';
+                        const target = row[8] || '-';
+                        const real = row[9] || '-';
+                        const status = (row[14] || '').toUpperCase();
+                        
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-blue-50">
+                                <td class="p-2 border font-bold text-slate-500">${no}</td>
+                                <td class="p-2 border font-medium text-slate-800">${ind}</td>
+                                <td class="p-2 border text-center">${bobot}</td>
+                                <td class="p-2 border text-center">${target}</td>
+                                <td class="p-2 border text-center font-bold">${real}</td>
+                                <td class="p-2 border text-center">
+                                    <span class="px-2 py-0.5 rounded ${status.includes('MASALAH') ? 'status-masalah' : 'status-baik'}">
+                                        ${status}
+                                    </span>
+                                </td>
+                            </tr>`;
                     }
                 });
             }
