@@ -4,32 +4,33 @@
     <meta charset="UTF-8">
     <title>UPT Bengkulu Command</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .glass { background: rgba(17, 25, 40, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
 </head>
-<body class="bg-slate-950 text-slate-200 min-h-screen p-4 md:p-8">
+<body class="bg-slate-950 text-slate-100 min-h-screen p-6">
     <header class="mb-10 text-center"><h1 class="text-3xl font-black text-blue-500 uppercase tracking-widest">Command Center</h1></header>
-    <div id="grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Dashboard akan diisi data -->
-    </div>
+    <div id="grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+
     <script>
-        // Data hasil parsing Google Sheets (Gue taruh sini buat permulaan)
-        const data = [
-            { id: "TLOF", target: "0.0992", real: "0.0000", status: "BAIK" },
-            { id: "TROF", target: "0.0183", real: "0.0000", status: "BAIK" },
-            { id: "Indikator C", target: "0.0027", real: "2.0833", status: "AWAS" }
-            // ... nanti lo bisa tambahin sisanya di sini
-        ];
-        const grid = document.getElementById('grid');
-        data.forEach(item => {
-            grid.innerHTML += `
-                <div class="glass p-4 rounded-xl border ${item.status === 'AWAS' ? 'border-red-500/50' : 'border-slate-800'}">
-                    <h3 class="text-[10px] font-bold text-slate-500 uppercase">${item.id}</h3>
-                    <div class="text-xl font-mono">${item.real}</div>
-                    <div class="text-[10px] text-slate-400">Target: ${item.target}</div>
-                </div>`;
+        const sheetUrl = 'https://docs.google.com/spreadsheets/d/1GcyqF-CRESZyPRbeSObV7SWF-MseWjJtOmofF_4nPjQ/export?format=csv&gid=1877466739';
+        
+        Papa.parse(sheetUrl, {
+            download: true,
+            complete: function(results) {
+                const data = results.data.slice(9); // Skip header
+                const grid = document.getElementById('grid');
+                data.forEach(row => {
+                    if(row[1] && row[1].length > 1) {
+                        grid.innerHTML += `
+                            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                                <h3 class="text-[10px] font-bold text-slate-500 uppercase">${row[1]}</h3>
+                                <div class="text-xl font-mono">${row[9] || '0'}</div>
+                                <div class="text-[10px] text-emerald-400">Target: ${row[8] || '0'}</div>
+                            </div>`;
+                    }
+                });
+            }
         });
     </script>
 </body>
 </html>
+
