@@ -7,33 +7,45 @@
     <style>
         .pln-blue { color: #0076c8; }
         .bg-pln { background-color: #0076c8; }
-        tbody tr:nth-child(even) { background-color: #f8fafc; }
         .status-baik { background-color: #dcfce7; color: #166534; }
         .status-masalah { background-color: #fee2e2; color: #991b1b; }
+        table { width: auto; min-width: 100%; }
+        td, th { white-space: nowrap; padding: 0.5rem; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans p-6">
-    <div class="max-w-7xl mx-auto">
-        <header class="mb-6 border-b-4 border-blue-600 pb-4">
-            <h1 class="text-2xl font-black pln-blue">PT PLN (PERSERO) - UPT BENGKULU</h1>
-            <p class="text-[10px] font-bold text-slate-500 uppercase">Dashboard Kinerja Operasional (Mei 2026)</p>
+<body class="bg-slate-50 text-slate-900 font-sans p-4">
+    <div class="max-w-[95vw] mx-auto">
+        <header class="mb-4 border-b-4 border-blue-600 pb-2">
+            <h1 class="text-xl font-black pln-blue">PT PLN (PERSERO) - UPT BENGKULU</h1>
+            <p class="text-[9px] font-bold text-slate-500 uppercase">Dashboard Kinerja Operasional (Mei 2026)</p>
         </header>
-        <div class="overflow-x-auto bg-white rounded-lg shadow-sm border border-slate-200">
-            <table class="w-full text-[10px] text-left border-collapse">
-                <thead class="bg-blue-900 text-white uppercase">
-                    <tr>
-                        <th class="p-2 border">NO</th>
-                        <th class="p-2 border">INDIKATOR KINERJA</th>
-                        <th class="p-2 border text-center">BOBOT</th>
-                        <th class="p-2 border text-center">TARGET S.D MEI</th>
-                        <th class="p-2 border text-center">REALISASI S.D MEI</th>
-                        <th class="p-2 border text-center">STATUS</th>
-                    </tr>
-                </thead>
-                <tbody id="data-body" class="divide-y divide-slate-200">
-                    <tr><td colspan="6" class="p-8 text-center text-slate-400">Loading data...</td></tr>
-                </tbody>
-            </table>
+        
+        <div id="tables-container" class="space-y-6">
+            <!-- Tabel Utama -->
+            <div class="overflow-x-auto bg-white rounded-lg shadow border border-slate-200">
+                <h2 class="bg-blue-900 text-white p-2 text-xs font-bold uppercase">Indikator Kinerja Utama</h2>
+                <table class="w-full text-[9px] border-collapse" id="main-table">
+                    <thead class="bg-slate-100 uppercase">
+                        <tr>
+                            <th>NO</th><th>INDIKATOR</th><th>BOBOT</th><th>TARGET</th><th>REALISASI</th><th>STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="main-body" class="divide-y"></tbody>
+                </table>
+            </div>
+
+            <!-- Tabel Kinerja Merah -->
+            <div class="overflow-x-auto bg-white rounded-lg shadow border border-red-200">
+                <h2 class="bg-red-800 text-white p-2 text-xs font-bold uppercase">Kinerja Merah (ABOF)</h2>
+                <table class="w-full text-[9px] border-collapse" id="red-table">
+                    <thead class="bg-slate-100 uppercase">
+                        <tr>
+                            <th>NO</th><th>STATUS</th><th>REALISASI/TINDAK LANJUT (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="red-body" class="divide-y"></tbody>
+                </table>
+            </div>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
@@ -42,30 +54,23 @@
         Papa.parse(sheetUrl, {
             download: true,
             complete: function(results) {
-                const tbody = document.getElementById('data-body');
-                tbody.innerHTML = '';
+                const mainBody = document.getElementById('main-body');
+                const redBody = document.getElementById('red-body');
+                
                 results.data.forEach((row) => {
-                    if(row[1] && row[2]) {
-                        const no = row[1];
-                        const ind = row[2];
-                        const bobot = row[3] || '-';
-                        const target = row[8] || '-';
-                        const real = row[9] || '-';
-                        const status = (row[14] || '').toUpperCase();
-                        
-                        tbody.innerHTML += `
-                            <tr class="hover:bg-blue-50">
-                                <td class="p-2 border font-bold text-slate-500">${no}</td>
-                                <td class="p-2 border font-medium text-slate-800">${ind}</td>
-                                <td class="p-2 border text-center">${bobot}</td>
-                                <td class="p-2 border text-center">${target}</td>
-                                <td class="p-2 border text-center font-bold">${real}</td>
-                                <td class="p-2 border text-center">
-                                    <span class="px-2 py-0.5 rounded ${status.includes('MASALAH') ? 'status-masalah' : 'status-baik'}">
-                                        ${status}
-                                    </span>
-                                </td>
-                            </tr>`;
+                    // Tabel Utama (row 1-16)
+                    if(row[1] && row[1].match(/^\d+$/)) {
+                        mainBody.innerHTML += `<tr>
+                            <td>${row[1]}</td><td>${row[2] || ''}</td><td>${row[3] || ''}</td>
+                            <td>${row[8] || ''}</td><td>${row[9] || ''}</td>
+                            <td class="${(row[14]||'').includes('MASALAH') ? 'status-masalah' : 'status-baik'}">${row[14]||''}</td>
+                        </tr>`;
+                    }
+                    // Tabel Merah (ABOF)
+                    if(row[1] && row[1].match(/^\d+$/) && row[16]) {
+                        redBody.innerHTML += `<tr>
+                            <td>${row[16]}</td><td>${row[17]||''}</td><td>${row[18]||''}</td>
+                        </tr>`;
                     }
                 });
             }
