@@ -1,31 +1,72 @@
+```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>UPT Bengkulu Command</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Kinerja UPT Bengkulu</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+    <style>
+        .pln-blue { color: #0076c8; }
+        .bg-pln { background-color: #0076c8; }
+        tr:nth-child(even) { background-color: #f8fafc; }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-6">
-    <header class="mb-10 text-center"><h1 class="text-3xl font-black text-blue-500 uppercase tracking-widest">Command Center</h1></header>
-    <div id="grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+<body class="bg-slate-50 text-slate-900 font-sans">
+    <div class="max-w-6xl mx-auto p-6">
+        <header class="mb-8 border-b-4 border-blue-600 pb-4">
+            <h1 class="text-3xl font-black pln-blue tracking-tight">PT PLN (PERSERO) - UPT BENGKULU</h1>
+            <p class="text-sm font-semibold text-slate-500 uppercase tracking-widest mt-1">Laporan Kinerja - Mei 2026</p>
+        </header>
 
+        <div class="overflow-x-auto bg-white rounded-xl shadow-lg border border-slate-200">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-blue-600 text-white uppercase text-[11px] tracking-wider">
+                    <tr>
+                        <th class="p-4">No</th>
+                        <th class="p-4">Indikator Kinerja</th>
+                        <th class="p-4 text-center">Target S.D Mei</th>
+                        <th class="p-4 text-center">Realisasi S.D Mei</th>
+                        <th class="p-4 text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="data-body" class="divide-y divide-slate-100 text-slate-700">
+                    <!-- Data ditarik otomatis -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
     <script>
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/1GcyqF-CRESZyPRbeSObV7SWF-MseWjJtOmofF_4nPjQ/export?format=csv&gid=1877466739';
         
         Papa.parse(sheetUrl, {
             download: true,
             complete: function(results) {
-                const data = results.data.slice(9); // Skip header
-                const grid = document.getElementById('grid');
-                data.forEach(row => {
-                    if(row[1] && row[1].length > 1) {
-                        grid.innerHTML += `
-                            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                                <h3 class="text-[10px] font-bold text-slate-500 uppercase">${row[1]}</h3>
-                                <div class="text-xl font-mono">${row[9] || '0'}</div>
-                                <div class="text-[10px] text-emerald-400">Target: ${row[8] || '0'}</div>
-                            </div>`;
+                const tbody = document.getElementById('data-body');
+                // Baris ke-9 header, data mulai index 9
+                results.data.slice(9).forEach((row) => {
+                    // Filter baris yang punya indikator (row index 1)
+                    if(row[1] && row[1].trim() !== "" && row[1].length > 1) {
+                        const target = row[8] || '-';
+                        const real = row[9] || '-';
+                        
+                        // Logika status sederhana (jika real >= target maka baik)
+                        const isGood = parseFloat(real.replace(',','.')) >= parseFloat(target.replace(',','.') || 0);
+                        
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-blue-50 transition-colors">
+                                <td class="p-4 font-bold text-slate-400">${row[1]}</td>
+                                <td class="p-4 font-medium">${row[2] || '-'}</td>
+                                <td class="p-4 text-center">${target}</td>
+                                <td class="p-4 text-center font-bold text-blue-700">${real}</td>
+                                <td class="p-4 text-center">
+                                    <span class="px-3 py-1 rounded-full text-[10px] font-bold ${isGood ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                                        ${isGood ? 'BAIK' : 'AWAS'}
+                                    </span>
+                                </td>
+                            </tr>`;
                     }
                 });
             }
@@ -33,4 +74,4 @@
     </script>
 </body>
 </html>
-
+```
