@@ -17,9 +17,9 @@
     <div class="max-w-[95vw] mx-auto">
         <header class="mb-4 border-b-4 border-blue-600 pb-2">
             <h1 class="text-xl font-black pln-blue">PT PLN (PERSERO) - UPT BENGKULU</h1>
-            <p class="text-[9px] font-bold text-slate-500 uppercase">Dashboard Kinerja Operasional (Mei 2026)</p>
+            <p class="text-[9px] font-bold text-slate-500 uppercase" id="period-label">Dashboard Kinerja Operasional</p>
         </header>
-        
+
         <div id="tables-container" class="space-y-6">
             <!-- Tabel Utama -->
             <div class="overflow-x-auto bg-white rounded-lg shadow border border-slate-200">
@@ -40,7 +40,7 @@
                 <table class="w-full text-[9px] border-collapse" id="red-table">
                     <thead class="bg-slate-100 uppercase">
                         <tr>
-                            <th>NO</th><th>STATUS</th><th>REALISASI/TINDAK LANJUT (%)</th>
+                            <th>NO</th><th>PENYEBAB / FAKTOR</th><th>STATUS</th><th>TINDAK LANJUT (%)</th>
                         </tr>
                     </thead>
                     <tbody id="red-body" class="divide-y"></tbody>
@@ -51,26 +51,50 @@
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
     <script>
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/1GcyqF-CRESZyPRbeSObV7SWF-MseWjJtOmofF_4nPjQ/export?format=csv&gid=1877466739';
+        const c = (row, i) => ((row && row[i]) !== undefined && row[i] !== null ? String(row[i]) : '').trim();
+        // bulan realisasi terakhir ada di kolom 9..20 (JAN..DES)
+        const lastMonth = (row) => {
+            let last = '';
+            for (let i = 9; i <= 20; i++) { const v = c(row, i); if (v) last = v; }
+            return last;
+        };
         Papa.parse(sheetUrl, {
             download: true,
             complete: function(results) {
                 const mainBody = document.getElementById('main-body');
                 const redBody = document.getElementById('red-body');
-                
+                const periodEl = document.getElementById('period-label');
+                let inRed = false;
+
                 results.data.forEach((row) => {
-                    // Tabel Utama (row 1-16)
-                    if(row[1] && row[1].match(/^\d+$/)) {
-                        mainBody.innerHTML += `<tr>
-                            <td>${row[1]}</td><td>${row[2] || ''}</td><td>${row[3] || ''}</td>
-                            <td>${row[8] || ''}</td><td>${row[9] || ''}</td>
-                            <td class="${(row[14]||'').includes('MASALAH') ? 'status-masalah' : 'status-baik'}">${row[14]||''}</td>
-                        </tr>`;
+                    // Label periode dari header sheet (BULAN | AGUSTUS | 2026)
+                    if (c(row, 8).toUpperCase() === 'BULAN') {
+                        const m = (c(row, 9) + ' ' + c(row, 10)).trim();
+                        if (m && periodEl) periodEl.textContent = 'Dashboard Kinerja Operasional (' + m + ')';
                     }
-                    // Tabel Merah (ABOF)
-                    if(row[1] && row[1].match(/^\d+$/) && row[16]) {
-                        redBody.innerHTML += `<tr>
-                            <td>${row[16]}</td><td>${row[17]||''}</td><td>${row[18]||''}</td>
-                        </tr>`;
+                    // Masuk blok KINERJA MERAH
+                    if (row.some(cell => c([cell], 0).toUpperCase() === 'KINERJA MERAH')) { inRed = true; return; }
+
+                    if (!inRed) {
+                        // Tabel utama: NO (kol 1) digit + INDIKATOR (kol 2) terisi
+                        if (/^\d+$/.test(c(row, 1)) && c(row, 2)) {
+                            const status = c(row, 14);
+                            mainBody.innerHTML += `<tr>
+                                <td>${c(row, 1)}</td><td>${c(row, 2)}</td><td>${c(row, 3)}</td>
+                                <td>${c(row, 8)}</td><td>${c(row, 9)}</td>
+                                <td class="${status.includes('MASALAH') ? 'status-masalah' : 'status-baik'}">${status}</td>
+                            </tr>`;
+                        }
+                    } else {
+                        // Kinerja merah: NO digit + PENYEBAB (kol 2) terisi
+                        if (/^\d+$/.test(c(row, 1)) && c(row, 2)) {
+                            const status = c(row, 8);
+                            redBody.innerHTML += `<tr>
+                                <td>${c(row, 1)}</td><td>${c(row, 2).replace(/\n/g, ' ')}</td>
+                                <td class="${status.toUpperCase().includes('CLOSE') ? 'status-baik' : 'status-masalah'}">${status}</td>
+                                <td>${lastMonth(row)}</td>
+                            </tr>`;
+                        }
                     }
                 });
             }
