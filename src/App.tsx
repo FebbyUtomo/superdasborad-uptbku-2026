@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom';
-import { Activity, Axe, Gauge, LayoutDashboard, Menu, Moon, RefreshCw, ShieldAlert, Sun, TreePine, Zap, X } from 'lucide-react';
+import { Activity, Axe, Gauge, Images, LayoutDashboard, Menu, Moon, RefreshCw, ShieldAlert, Sun, TreePine, Zap, X } from 'lucide-react';
 import { DataProvider, PageSourcesProvider, useData, usePageSourceKeys } from './lib/data';
 import { LoadingScreen, ThemeProvider, UptLogo, useTheme } from './components/ui';
 import Home from './pages/Home';
@@ -10,6 +10,7 @@ import Penebangan from './pages/Penebangan';
 import Kerawanan from './pages/Kerawanan';
 import Gangguan from './pages/Gangguan';
 import Ultg from './pages/Ultg';
+import Galeri from './pages/Galeri';
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -18,6 +19,7 @@ const NAV = [
   { to: '/penebangan', label: 'Realisasi Penebangan', icon: Axe },
   { to: '/kerawanan', label: 'Kerawanan Transmisi', icon: ShieldAlert },
   { to: '/gangguan', label: 'Monitoring Gangguan', icon: Activity },
+  { to: '/galeri', label: 'Galeri Kegiatan', icon: Images },
   { to: '/ultg', label: 'Kinerja ULTG', icon: Zap, soon: true },
 ];
 
@@ -119,6 +121,7 @@ function Shell() {
             <Route path="/kerawanan" element={<Kerawanan />} />
             <Route path="/gangguan" element={<Gangguan />} />
             <Route path="/ultg" element={<Ultg />} />
+            <Route path="/galeri" element={<Galeri />} />
             <Route path="*" element={<Home />} />
           </Routes>
           <footer className="text-center text-[11px] t-muted py-8">© {new Date().getFullYear()} PLN UPT Bengkulu · Dikembangkan oleh <a href="https://www.linkedin.com/in/febbyutomo/" target="_blank" rel="noopener noreferrer" className="hover:underline">Febby P. Utomo</a></footer>
