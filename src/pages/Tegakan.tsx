@@ -118,6 +118,7 @@ function DataTable({ rows }: { rows: TegakanRow[] }) {
     { key: 'line', label: 'LINE', value: (r) => r.line },
     { key: 'tinggi', label: 'TINGGI (M)', value: (r) => r.tinggi, render: (r) => fmtNum(r.tinggi, 1), align: 'right' },
     { key: 'tinggiSpan', label: 'TINGGI SPAN (M)', value: (r) => r.tinggiSpan, render: (r) => fmtNum(r.tinggiSpan, 1), align: 'right' },
+    { key: 'jarakPohon', label: 'JARAK POHON (M)', value: (r) => r.jarakPohon, render: (r) => fmtNum(r.jarakPohon, 1), align: 'right' },
     { key: 'u', label: 'U (M)', value: (r) => r.u, render: (r) => fmtNum(r.u, 1), align: 'right' },
     { key: 'jml', label: 'JML', value: (r) => r.jml, render: (r) => <b>{fmtNum(r.jml)}</b>, align: 'right' },
     { key: 'status', label: 'STATUS', value: (r) => r.status, render: (r) => <Badge status={r.status} /> },

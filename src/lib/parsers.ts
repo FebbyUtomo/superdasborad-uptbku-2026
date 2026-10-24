@@ -200,7 +200,7 @@ export const TEG_STATUSES = ['NORMAL', 'BAHAYA_II', 'BAHAYA_I', 'KRITIS'] as con
 export interface TegakanRow {
   no: string; span: string; ultg: string; gi: string; pht: string; tglUpdate: Date | null; tglUpdateRaw: string;
   petugas: string; tipe: string; posisi: string; line: string;
-  tinggi: number | null; tinggiSpan: number | null; u: number | null; jml: number; status: string; lat: string; lng: string;
+  tinggi: number | null; tinggiSpan: number | null; jarakPohon: number | null; u: number | null; jml: number; status: string; lat: string; lng: string;
 }
 export function parseTegakan(grid: Grid): { rows: TegakanRow[]; headerTotal: number | null } {
   const hIdx = grid.findIndex((r) => r.some((c) => c.trim().toUpperCase() === 'JML') && r.some((c) => c.trim().toUpperCase() === 'STATUS'));
@@ -209,7 +209,7 @@ export function parseTegakan(grid: Grid): { rows: TegakanRow[]; headerTotal: num
   const C = {
     no: col('NO'), span: col('SPAN'), ultg: col('ULTG'), gi: col('GARDU INDUK'), pht: col('PENGHANTAR'), upd: col('TGL UPDATE'),
     petugas: col('PETUGAS'), tipe: col('TIPE'), posisi: col('POSISI'), line: col('LINE'), tinggi: col('TINGGI (M)'),
-    tspan: col('TINGGI SPAN (M)'), u: col('U (M)'), jml: col('JML'), status: col('STATUS'), lat: col('LAT'), lng: col('LNG'),
+    tspan: col('TINGGI SPAN (M)'), jarak: col('SAMPING SPAN (M)'), u: col('U (M)'), jml: col('JML'), status: col('STATUS'), lat: col('LAT'), lng: col('LNG'),
   };
   let headerTotal: number | null = null;
   for (let k = 0; k < hIdx; k++) { const v = num(cell(grid[k], C.jml)); if (v != null) headerTotal = v; }
@@ -222,7 +222,7 @@ export function parseTegakan(grid: Grid): { rows: TegakanRow[]; headerTotal: num
     rows.push({
       no: cell(r, C.no), span, ultg: cell(r, C.ultg), gi: cell(r, C.gi), pht: cell(r, C.pht),
       tglUpdateRaw: cell(r, C.upd), tglUpdate: parseDate(cell(r, C.upd)), petugas: cell(r, C.petugas), tipe: cell(r, C.tipe).toUpperCase(),
-      posisi: cell(r, C.posisi), line: cell(r, C.line), tinggi: num(cell(r, C.tinggi)), tinggiSpan: num(cell(r, C.tspan)),
+      posisi: cell(r, C.posisi), line: cell(r, C.line), tinggi: num(cell(r, C.tinggi)), tinggiSpan: num(cell(r, C.tspan)), jarakPohon: num(cell(r, C.jarak)),
       u: num(cell(r, C.u)), jml: num0(cell(r, C.jml)), status, lat: cell(r, C.lat), lng: cell(r, C.lng),
     });
   }
