@@ -10,6 +10,7 @@ import { GaugeDonut, SimplePie, TegakanUltgChart } from '../components/charts';
 import { MonthChips, lowestProblem, statusCounts } from './Kinerja';
 import { sumJml } from './Tegakan';
 import { penebanganYear } from './Penebangan';
+import { AnalisaNkoLine } from '../components/AnalisaNko';
 
 /** Section-level gate so one failing sheet never blanks the whole HOME page. */
 function Slot({ s, children, h = 280 }: { s: SourceState<unknown>; children: () => React.ReactNode; h?: number }) {
@@ -90,6 +91,8 @@ export default function Home() {
             sub={low ? <>{low.no}. {low.name.slice(0, 48)} · {fmtNum(pctOf(low), 2)}%</> : 'Tidak ada indikator MASALAH / HATI-HATI'} badge={low ? <Badge status={low.status} /> : undefined} />
         ); }} />
       </div>
+
+      {months.length > 1 && m && <AnalisaNkoLine months={months} sel={m.monthNo} onOpen={() => nav('/kinerja#analisa-nko', { state: { month: m.monthNo } })} />}
 
       {/* Charts — numbered, ordered left → right */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
