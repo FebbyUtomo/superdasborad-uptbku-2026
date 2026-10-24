@@ -65,6 +65,10 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
             {dark ? <><Moon size={16} color="#FFC940" /> Dark <span className="t-muted">→</span> <Sun size={16} /> </> : <><Sun size={16} color="#FFB800" /> Light <span className="t-muted">→</span> <Moon size={16} /></>}
           </button>
           <div className="text-[10px] t-muted text-center">Data live dari Google Sheets</div>
+          <div className="pt-2 mt-1 text-center leading-relaxed" style={{ borderTop: '1px solid var(--card-border)' }}>
+            <div className="text-[10px] t-muted">© {new Date().getFullYear()} PLN UPT Bengkulu</div>
+            <div className="text-[10px] t-muted opacity-80">Dikembangkan oleh <a href="https://www.linkedin.com/in/febbyutomo/" target="_blank" rel="noopener noreferrer" className="hover:underline">Febby P. Utomo</a></div>
+          </div>
         </div>
       </aside>
     </>
@@ -117,7 +121,7 @@ function Shell() {
             <Route path="/ultg" element={<Ultg />} />
             <Route path="*" element={<Home />} />
           </Routes>
-          <footer className="text-center text-[11px] t-muted py-8">© {new Date().getFullYear()} PT PLN (Persero) UPT Bengkulu · PLN KPI Dashboard</footer>
+          <footer className="text-center text-[11px] t-muted py-8">© {new Date().getFullYear()} PLN UPT Bengkulu · Dikembangkan oleh <a href="https://www.linkedin.com/in/febbyutomo/" target="_blank" rel="noopener noreferrer" className="hover:underline">Febby P. Utomo</a></footer>
         </main>
       </div>
     </div>
