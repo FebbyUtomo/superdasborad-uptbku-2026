@@ -57,15 +57,16 @@ export function ChartCard({ title, right, children, className = '', height = 280
   );
 }
 
-export function StatCard({ label, value, sub, color = C.cyan, icon, onClick, badge }: { label: string; value: React.ReactNode; sub?: React.ReactNode; color?: string; icon?: React.ReactNode; onClick?: () => void; badge?: React.ReactNode }) {
+export function StatCard({ label, labelSub, value, sub, valueSub, color = C.cyan, icon, onClick, badge }: { label: string; labelSub?: React.ReactNode; value: React.ReactNode; valueSub?: React.ReactNode; sub?: React.ReactNode; color?: string; icon?: React.ReactNode; onClick?: () => void; badge?: React.ReactNode }) {
   return (
     <Card hover className={`relative overflow-hidden ${onClick ? 'cursor-pointer' : ''}`} onClick={onClick}>
       <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-20 blur-2xl" style={{ background: color }} />
       <div className="flex items-start justify-between gap-2">
-        <div className="t-label">{label}</div>
+        <div><div className="t-label">{label}</div>{labelSub && <div className="text-[11px] t-muted mt-0.5">{labelSub}</div>}</div>
         {icon && <div style={{ color, filter: `drop-shadow(0 0 6px ${color})` }}>{icon}</div>}
       </div>
       <div className="mt-2 text-[28px] leading-tight font-extrabold" style={{ color }}>{value}</div>
+      {valueSub && <div className="text-xs font-bold mt-0.5" style={{ color: 'var(--accent)' }}>{valueSub}</div>}
       {sub && <div className="text-xs t-muted mt-1">{sub}</div>}
       {badge && <div className="mt-2">{badge}</div>}
     </Card>

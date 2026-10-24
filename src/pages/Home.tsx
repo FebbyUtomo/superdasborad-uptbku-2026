@@ -70,7 +70,7 @@ export default function Home() {
       {/* KPI cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
         <MiniCard s={ggn} render={() => (
-          <StatCard label="Total Gangguan" value={fmtNum(gRows.length)} color={C.cyan} icon={<Activity />} onClick={() => nav('/gangguan')}
+          <StatCard label="Total Gangguan" labelSub="(2023 s.d tahun berjalan)" value={fmtNum(gRows.length)} valueSub={<>(Tahun Berjalan {year} = {fmtNum(gRows.filter((r) => (r.tahun || String(r.tanggal?.getFullYear() ?? '')).trim() === String(year)).length)})</>} color={C.cyan} icon={<Activity />} onClick={() => nav('/gangguan')}
             sub={<><b style={{ color: C.warn }}>{openUpt} open</b> · <b style={{ color: C.crit }}>{overdue} overdue</b></>} badge={<span className="badge badge-info">Monitoring Gangguan →</span>} />
         )} />
         <MiniCard s={nko} render={() => (
