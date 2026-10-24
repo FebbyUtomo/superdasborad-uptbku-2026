@@ -6,6 +6,8 @@ import { NkoMonth, NkoRow, pctOf } from '../lib/parsers';
 import { fmtAuto, fmtNum, MONTHS_LONG, MONTHS_SHORT } from '../lib/sheets';
 import { Badge, C, Card, ChartCard, Col, Gate, PageHeader, Select, SortableTable, StatCard, useChartTheme } from '../components/ui';
 import { NkoBobotNilaiChart, SimplePie, pctColor } from '../components/charts';
+import AnalisaNko from '../components/AnalisaNko';
+import { useLocation } from 'react-router-dom';
 
 export function MonthChips({ months, value, onChange }: { months: NkoMonth[]; value: number; onChange: (m: number) => void }) {
   return (
@@ -66,7 +68,12 @@ export default function Kinerja() {
 
 function KinerjaBody({ months }: { months: NkoMonth[] }) {
   const latest = months[months.length - 1];
-  const [sel, setSel] = useState(latest.monthNo);
+  const loc = useLocation();
+  const askedMonth = (loc.state as { month?: number } | null)?.month;
+  const [sel, setSel] = useState(askedMonth && months.some((x) => x.monthNo === askedMonth) ? askedMonth : latest.monthNo);
+  useEffect(() => {
+    if (loc.hash === '#analisa-nko') { const t = setTimeout(() => document.getElementById('analisa-nko')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350); return () => clearTimeout(t); }
+  }, [loc.hash, loc.key]);
   const [perBulan, setPerBulan] = useState(latest.monthNo);
   const [showComp, setShowComp] = useState(false);
   const m = months.find((x) => x.monthNo === sel) ?? latest;
@@ -142,6 +149,7 @@ function KinerjaBody({ months }: { months: NkoMonth[] }) {
         <StatCard label="HATI-HATI" value={counts['HATI-HATI']} color={C.warn} icon={<AlertTriangle />} sub="indikator" />
         <StatCard label="MASALAH" value={counts.MASALAH} color={C.crit} icon={<XCircle />} sub="indikator" />
       </div>
+      <AnalisaNko months={months} sel={m.monthNo} />
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         <ChartCard title="1. Bobot vs Nilai per Indikator" className="xl:col-span-2" height={340}
           right={<span className="text-[11px] t-muted">Hijau ≥100% · Kuning 95–&lt;100% · Merah &lt;95% · arahkan kursor untuk detail</span>}>
