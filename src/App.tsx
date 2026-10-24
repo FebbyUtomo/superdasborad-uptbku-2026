@@ -31,7 +31,7 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
         style={{ background: 'var(--side)', borderRight: '1px solid var(--card-border)' }}
       >
         <div className="flex items-center gap-3 px-5 py-5" style={{ color: 'var(--heading)' }}>
-          <UptLogo size={46} />
+          <UptLogo size={60} />
           <div className="leading-tight">
             <div className="text-[11px] font-bold tracking-widest" style={{ color: 'var(--heading)' }}>PT PLN (PERSERO)</div>
             <div className="text-base font-extrabold t-accent">UPT BENGKULU</div>

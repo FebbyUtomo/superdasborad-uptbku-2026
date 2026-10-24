@@ -3,12 +3,12 @@ import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, FileDown, X
 import { SourceState } from '../lib/data';
 
 /* ---------- theme ---------- */
-const ThemeCtx = React.createContext<{ dark: boolean; toggle: () => void }>({ dark: true, toggle: () => {} });
+const ThemeCtx = React.createContext<{ dark: boolean; toggle: () => void }>({ dark: false, toggle: () => {} });
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [dark, setDark] = useState(() => { try { return localStorage.getItem('uptbku-theme') !== 'light'; } catch { return true; } });
+  const [dark, setDark] = useState(() => { try { return localStorage.getItem('uptbku-theme-v2') === 'dark'; } catch { return false; } });
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
-    try { localStorage.setItem('uptbku-theme', dark ? 'dark' : 'light'); } catch { /* ignore */ }
+    try { localStorage.setItem('uptbku-theme-v2', dark ? 'dark' : 'light'); } catch { /* ignore */ }
   }, [dark]);
   return <ThemeCtx.Provider value={{ dark, toggle: () => setDark((d) => !d) }}>{children}</ThemeCtx.Provider>;
 }
@@ -256,18 +256,12 @@ export function ExportButton<T>({ title, subtitle, cols, rows }: { title: string
 /* ---------- loading / error ---------- */
 export function UptLogo({ size = 120 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 120 120" aria-label="Logo UPT Bengkulu">
-      <defs>
-        <linearGradient id="lg-pln" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#00AEEF" /><stop offset="1" stopColor="#0072CE" /></linearGradient>
-      </defs>
-      <rect x="18" y="14" width="84" height="84" rx="16" fill="url(#lg-pln)" />
-      <path d="M48 26h10l-4 10h8" stroke="#E8F7FF" strokeWidth="0" />
-      <rect x="30" y="64" width="60" height="5" rx="2.5" fill="#00E5FF" opacity="0.9" />
-      <rect x="30" y="73" width="60" height="5" rx="2.5" fill="#00E5FF" opacity="0.7" />
-      <rect x="30" y="82" width="60" height="5" rx="2.5" fill="#00E5FF" opacity="0.5" />
-      <path d="M66 22 44 56h14l-6 24 26-36H62z" fill="#FFC940" stroke="#E8A900" strokeWidth="1.5" strokeLinejoin="round" />
-      <text x="60" y="113" textAnchor="middle" fontSize="11" fontWeight="800" fill="currentColor" fontFamily="Inter, Arial">UPT BENGKULU</text>
-    </svg>
+    <div
+      aria-label="Logo UPT Bengkulu"
+      style={{ width: size, height: size, background: '#ffffff', borderRadius: Math.max(8, size * 0.16), padding: size * 0.06, boxShadow: '0 2px 10px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+    >
+      <img src="/logo-uptbku.png" alt="UPT Bengkulu — Camkoha Bisa" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+    </div>
   );
 }
 export function LoadingScreen({ text = 'Memuat data…', full = false }: { text?: string; full?: boolean }) {
