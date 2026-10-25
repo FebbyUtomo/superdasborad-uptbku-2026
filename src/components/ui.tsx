@@ -259,9 +259,9 @@ export function UptLogo({ size = 120 }: { size?: number }) {
   return (
     <div
       aria-label="Logo UPT Bengkulu"
-      style={{ width: size, height: size, background: '#ffffff', borderRadius: Math.max(8, size * 0.16), padding: size * 0.06, boxShadow: '0 2px 10px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+      style={{ width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
     >
-      <img src="/logo-uptbku.png" alt="UPT Bengkulu — Camkoha Bisa" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+      <img src="/logo-uptbku.png" alt="UPT Bengkulu — Camkoha Bisa" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.18))' }} />
     </div>
   );
 }
