@@ -4,7 +4,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { usePageSources, useSource } from '../lib/data';
 import { fetchGrid, listTabs, SHEETS } from '../lib/sheets';
 import { parseAset, parseRekap, Ultg as UltgName, UltgEvent } from '../lib/ultg';
-import { buildUltgPdf, PdfAssets, UltgPdfPart } from '../lib/ultgPdf';
+import { buildUltgPdf, PdfAssets, themeFor, UltgPdfPart } from '../lib/ultgPdf';
 import { Card, ErrorState, LoadingScreen, PageHeader } from '../components/ui';
 
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP', 'OKT', 'NOV', 'DES'];
@@ -30,6 +30,28 @@ function PdfButton({ onClick, dark = false }: { onClick: () => Promise<void>; da
       style={dark ? { background: '#FFC940', color: '#0B2340' } : { background: '#DC2626', color: '#fff' }}>
       {busy ? <Loader2 size={14} className="animate-spin" /> : <FileDown size={14} />} PDF
     </button>
+  );
+}
+
+function ThemeBanner({ onPdf, ready }: { onPdf: () => Promise<void>; ready: boolean }) {
+  const now = new Date(); const th = themeFor(now); const m = now.getMonth() + 1;
+  const [art, setArt] = useState(true);
+  return (
+    <div>
+      <div className="relative overflow-hidden rounded-2xl" style={{ background: '#0B2340', minHeight: 230 }}>
+        {art && <img src={`/pdf/hdr-${m}.jpg`} alt="" onError={() => setArt(false)}
+          className="absolute right-0 top-0 h-full object-cover" style={{ width: '82%', objectPosition: '0% 38%' }} />}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, #0B2340 0%, #0B2340 22%, rgba(11,35,64,.85) 36%, rgba(11,35,64,0) 58%)' }} />
+        <div className="relative p-5 sm:p-7 max-w-[560px]">
+          <span className="inline-block rounded-lg px-3 py-1.5 text-xs sm:text-sm font-extrabold text-white" style={{ background: '#CE1126' }}>{th.badge.toUpperCase()}</span>
+          <h1 className="mt-3 text-3xl sm:text-5xl font-extrabold text-white">Kinerja ULTG</h1>
+          <div className="mt-2 text-base sm:text-lg font-semibold" style={{ color: '#FFC940' }}>{th.slogan}</div>
+          <div className="text-xs sm:text-sm" style={{ color: '#DCE6F5' }}>{th.badgeSub}</div>
+          {ready && <div className="mt-3 flex items-center gap-2"><PdfButton onClick={onPdf} /><span className="text-xs" style={{ color: '#E6ECF5' }}>Seluruh ULTG</span></div>}
+        </div>
+      </div>
+      <div className="flex h-1.5 mt-0">{['#CE1126', '#FFFFFF', '#0072CE', '#FFC940'].map((c) => <div key={c} className="flex-1" style={{ background: c }} />)}</div>
+    </div>
   );
 }
 
@@ -175,7 +197,7 @@ export default function Ultg() {
   };
   return (
     <div className="space-y-5">
-      <PageHeader title={<span className="inline-flex items-center gap-3">Kinerja ULTG {data && <PdfButton onClick={() => exportPdf('ALL')} />}</span>} subtitle={`Rekap gangguan per ULTG s.d. ${bulan} · sumber: Link Kinerja (REKAP GANGGUAN) & tab ASET`} />
+      <ThemeBanner ready={!!data} onPdf={() => exportPdf('ALL')} />
       {tabs && (
         <div className="flex flex-wrap gap-2">
           {tabs.map((t) => <button key={t.no} className={`chip ${sel === t.no ? 'chip-on' : ''}`} onClick={() => setSel(t.no)}>{MONTHS[t.no - 1]}</button>)}
