@@ -20,7 +20,7 @@ const NAV = [
   { to: '/kerawanan', label: 'Kerawanan Transmisi', icon: ShieldAlert },
   { to: '/gangguan', label: 'Monitoring Gangguan', icon: Activity },
   { to: '/galeri', label: 'Galeri Kegiatan', icon: Images },
-  { to: '/ultg', label: 'Kinerja ULTG', icon: Zap, soon: true },
+  { to: '/ultg', label: 'Kinerja ULTG', icon: Zap, soon: false },
 ];
 
 function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {

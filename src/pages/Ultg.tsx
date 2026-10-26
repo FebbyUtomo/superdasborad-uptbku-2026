@@ -1,19 +1,177 @@
-import React from 'react';
-import { Zap } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ChevronDown, ChevronUp, Zap } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { usePageSources } from '../lib/data';
-import { Card, PageHeader } from '../components/ui';
+import { fetchGrid, listTabs, SHEETS } from '../lib/sheets';
+import { parseAset, parseRekap, Ultg as UltgName, UltgEvent } from '../lib/ultg';
+import { Card, ErrorState, LoadingScreen, PageHeader } from '../components/ui';
+
+const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP', 'OKT', 'NOV', 'DES'];
+const LONG = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+const COLORS: Record<string, string> = { Petir: '#2563EB', Monyet: '#DC2626', Hewan: '#2E7D32', Topskor: '#F57C00', Ular: '#7C4DFF', 'Pengujian (ABOF)': '#6E6E6E', Pengujian: '#6E6E6E', NSF: '#00ACC1', 'APPL (Excavator)': '#FFC107', APPL: '#FFC107', Layang: '#FF6FB5', Pohon: '#795548' };
+const EXTRA = ['#36CFC9', '#9BE15D', '#5B8CFF', '#FF6FB5', '#B37FEB', '#8D6E63'];
+const colorOf = (n: string, i: number) => COLORS[n] ?? EXTRA[i % EXTRA.length];
+const pct = (a: number, b: number) => (b ? Math.round((a * 100) / b) : 0);
+
+type Tab = { name: string; gid: string; no: number };
+interface Loaded { title: string; events: UltgEvent[]; kinerja: UltgEvent[]; unmapped: UltgEvent[] }
+
+function UltgPanel({ name, events, kinerja }: { name: UltgName; events: UltgEvent[]; kinerja: UltgEvent[] }) {
+  const [open, setOpen] = useState(false);
+  const total = events.length, rc = events.filter((e) => e.type === 'Reclose').length, tr = total - rc;
+  const clusters = useMemo(() => {
+    const m = new Map<string, number>(); events.forEach((e) => m.set(e.cluster, (m.get(e.cluster) || 0) + 1));
+    return [...m.entries()].sort((a, b) => b[1] - a[1]).map(([n, v]) => ({ name: n, value: v }));
+  }, [events]);
+  const maxC = Math.max(1, ...clusters.map((c) => c.value));
+  const stats = [
+    { l: 'TOTAL GANGGUAN', v: total, s: 'kejadian', c: '#0072CE' },
+    { l: 'RE-CLOSE', v: rc, s: `${pct(rc, total)}%`, c: '#2E7D32' },
+    { l: 'TRIP', v: tr, s: `${pct(tr, total)}%`, c: '#F57C00' },
+    { l: 'MASUK KINERJA', v: kinerja.length, s: 'kejadian', c: '#DC2626', hi: true },
+  ];
+  return (
+    <Card className="!p-0 overflow-hidden flex flex-col">
+      <div className="px-5 py-3 flex items-center gap-2" style={{ background: '#0B2340' }}>
+        <Zap size={20} color="#FFC940" fill="#FFC940" />
+        <div className="font-extrabold tracking-wide" style={{ color: '#FFC940' }}>MONITORING KINERJA ULTG {name}</div>
+      </div>
+      <div className="p-5 space-y-6">
+        <div>
+          <div className="text-xs font-bold uppercase t-muted mb-2">Ringkasan Gangguan</div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {stats.map((s) => (
+              <div key={s.l} className="rounded-xl p-3 text-center border" style={{ borderColor: s.hi ? s.c : 'rgba(127,140,160,.25)', borderWidth: s.hi ? 2 : 1 }}>
+                <div className="text-[10.5px] font-bold t-muted">{s.l}</div>
+                <div className="text-3xl font-extrabold my-1" style={{ color: s.c }}>{s.v}</div>
+                <div className="text-xs t-muted">{s.s}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div className="text-xs font-bold uppercase t-muted mb-2">Cluster Gangguan Berdasarkan Penyebab</div>
+          {total === 0 ? <div className="t-muted text-sm py-6 text-center">Belum ada gangguan.</div> : (
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="relative shrink-0" style={{ width: 200, height: 200 }}>
+                <ResponsiveContainer>
+                  <PieChart>
+                    <Pie data={clusters} dataKey="value" nameKey="name" innerRadius={58} outerRadius={95} startAngle={90} endAngle={-270} stroke="none">
+                      {clusters.map((c, i) => <Cell key={c.name} fill={colorOf(c.name, i)} />)}
+                    </Pie>
+                    <Tooltip formatter={(v: number, n: string) => [`${v} (${pct(v, total)}%)`, n]} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <div className="text-[10px] font-bold t-muted">TOTAL</div>
+                  <div className="text-2xl font-extrabold">{total}</div>
+                  <div className="text-[10px] t-muted">kejadian</div>
+                </div>
+              </div>
+              <div className="flex-1 w-full space-y-2">
+                {clusters.map((c, i) => (
+                  <div key={c.name} className="flex items-center gap-2 text-sm">
+                    <span className="w-3.5 h-3.5 rounded shrink-0" style={{ background: colorOf(c.name, i) }} />
+                    <span className="font-semibold flex-1">{c.name}</span>
+                    <span className="font-bold w-6 text-right">{c.value}</span>
+                    <span className="t-muted w-12">({pct(c.value, total)}%)</span>
+                    <span className="hidden md:block h-2 rounded" style={{ width: 60 * (c.value / maxC), background: colorOf(c.name, i) }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+        <div>
+          <div className="text-xs font-bold uppercase mb-2" style={{ color: '#DC2626' }}>Gangguan yang Masuk Kinerja</div>
+          {kinerja.length === 0 ? <div className="t-muted text-sm">Tidak ada gangguan pengurang kinerja.</div> : (
+            <div className="space-y-2">
+              {kinerja.map((e, i) => (
+                <div key={i} className="rounded-xl p-3 border" style={{ borderColor: 'rgba(220,38,38,.35)', background: 'rgba(220,38,38,.06)' }}>
+                  <div className="text-sm font-semibold">{i + 1}. {e.date}; {e.time}; {e.line}; {e.type}; {e.cause}</div>
+                  <span className="inline-block mt-2 text-xs font-bold text-white px-3 py-1 rounded-full" style={{ background: '#DC2626' }}>→ {e.kinerja}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div>
+          <button className="text-sm font-bold flex items-center gap-1" style={{ color: '#0072CE' }} onClick={() => setOpen(!open)}>
+            Daftar seluruh gangguan ({total}) {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+          {open && (
+            <div className="mt-2 max-h-80 overflow-auto text-sm divide-y" style={{ borderColor: 'rgba(127,140,160,.2)' }}>
+              {[...events].reverse().map((e, i) => (
+                <div key={i} className="py-1.5 flex flex-wrap gap-x-2">
+                  <span className="t-muted">{e.date} · {e.time}</span><span className="font-semibold">{e.line}</span>
+                  <span style={{ color: e.type === 'Trip' ? '#F57C00' : '#2E7D32' }}>{e.type}</span><span>{e.cause}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+}
 
 export default function Ultg() {
   usePageSources([]);
+  const [tabs, setTabs] = useState<Tab[] | null>(null);
+  const [sel, setSel] = useState(0);
+  const [data, setData] = useState<Loaded | null>(null);
+  const [err, setErr] = useState('');
+  const [reload, setReload] = useState(0);
+
+  useEffect(() => {
+    listTabs(SHEETS.nko).then((all) => {
+      const t = all.map((x) => ({ ...x, no: Number((x.name.match(/^(\d{1,2})\./) || [])[1]) }))
+        .filter((x) => x.no >= 1 && x.no <= 12).sort((a, b) => a.no - b.no);
+      setTabs(t); if (t.length) setSel(t[t.length - 1].no);
+    }).catch((e) => setErr(String(e)));
+  }, [reload]);
+
+  useEffect(() => {
+    if (!tabs || !sel) return;
+    const tab = tabs.find((t) => t.no === sel); if (!tab) return;
+    setData(null); setErr('');
+    listTabs(SHEETS.nko).then(async (all) => {
+      const aset = all.find((x) => /^ASET$/i.test(x.name.trim())) ?? { gid: '1950971114' };
+      const [g, a] = await Promise.all([fetchGrid(SHEETS.nko, tab.gid), fetchGrid(SHEETS.nko, aset.gid)]);
+      const map = parseAset(a);
+      const r = parseRekap(g, map);
+      setData({ ...r, unmapped: r.events.filter((e) => !e.ultg) });
+    }).catch((e) => setErr(String(e.message || e)));
+  }, [tabs, sel, reload]);
+
+  const bulan = LONG[sel - 1] ?? '';
   return (
     <div className="space-y-5">
-      <PageHeader title="Kinerja ULTG" subtitle="Halaman berikutnya — segera hadir" />
-      <Card className="flex flex-col items-center text-center gap-3 py-16">
-        <Zap size={56} color="#FFC940" style={{ filter: 'drop-shadow(0 0 12px #FFC940)' }} />
-        <div className="h-title text-2xl">COMING SOON</div>
-        <div className="t-muted max-w-lg">Placeholder untuk dashboard Kinerja ULTG Pekalongan &amp; ULTG Lahat. Sumber data akan ditambahkan pada tahap berikutnya.</div>
-        <span className="badge badge-warn">SOON</span>
-      </Card>
+      <PageHeader title="Kinerja ULTG" subtitle={`Rekap gangguan per ULTG s.d. ${bulan} · sumber: Link Kinerja (REKAP GANGGUAN) & tab ASET`} />
+      {tabs && (
+        <div className="flex flex-wrap gap-2">
+          {tabs.map((t) => <button key={t.no} className={`chip ${sel === t.no ? 'chip-on' : ''}`} onClick={() => setSel(t.no)}>{MONTHS[t.no - 1]}</button>)}
+        </div>
+      )}
+      {err && <ErrorState detail={err} onRetry={() => setReload((x) => x + 1)} />}
+      {!err && !data && <LoadingScreen text="Memuat Kinerja ULTG…" />}
+      {data && (
+        <>
+          <div className="grid gap-5 xl:grid-cols-2">
+            {(['PEKALONGAN', 'LAHAT'] as UltgName[]).map((u) => (
+              <UltgPanel key={u} name={u} events={data.events.filter((e) => e.ultg === u)} kinerja={data.kinerja.filter((e) => e.ultg === u)} />
+            ))}
+          </div>
+          {data.unmapped.length > 0 && (
+            <Card className="text-sm">
+              <div className="font-bold mb-1" style={{ color: '#F57C00' }}>Belum terpetakan ke ULTG ({data.unmapped.length})</div>
+              {data.unmapped.map((e, i) => <div key={i}>{e.date} · {e.line} · {e.type} · {e.cause}</div>)}
+              <div className="t-muted text-xs mt-1">Penghantar ini belum ada di daftar tab ASET.</div>
+            </Card>
+          )}
+          <div className="text-xs t-muted">Pembagian ULTG mengikuti daftar penghantar di tab ASET (fallback: lokasi GI). {data.title}.</div>
+        </>
+      )}
     </div>
   );
 }
