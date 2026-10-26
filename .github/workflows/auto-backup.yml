@@ -1,0 +1,21 @@
+name: Auto backup sebelum update
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tag versi sebelumnya sebagai backup
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PREV="${{ github.event.before }}"
+          if [ "$PREV" = "0000000000000000000000000000000000000000" ]; then exit 0; fi
+          TAG="backup-$(TZ=Asia/Jakarta date +%Y-%m-%d-%H%M)-${PREV:0:7}"
+          curl -s -X POST -H "Authorization: Bearer $GH_TOKEN" \
+            https://api.github.com/repos/${{ github.repository }}/git/refs \
+            -d "{\"ref\":\"refs/tags/$TAG\",\"sha\":\"$PREV\"}"
+          echo "Backup dibuat: $TAG oleh ${{ github.actor }}"
