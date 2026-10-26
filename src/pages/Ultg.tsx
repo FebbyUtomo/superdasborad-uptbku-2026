@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ChevronDown, ChevronUp, Zap } from 'lucide-react';
+import { ChevronDown, ChevronUp, FileDown, Loader2, Zap } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { usePageSources } from '../lib/data';
+import { usePageSources, useSource } from '../lib/data';
 import { fetchGrid, listTabs, SHEETS } from '../lib/sheets';
 import { parseAset, parseRekap, Ultg as UltgName, UltgEvent } from '../lib/ultg';
+import { buildUltgPdf, PdfAssets, UltgPdfPart } from '../lib/ultgPdf';
 import { Card, ErrorState, LoadingScreen, PageHeader } from '../components/ui';
 
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP', 'OKT', 'NOV', 'DES'];
@@ -13,10 +14,29 @@ const EXTRA = ['#36CFC9', '#9BE15D', '#5B8CFF', '#FF6FB5', '#B37FEB', '#8D6E63']
 const colorOf = (n: string, i: number) => COLORS[n] ?? EXTRA[i % EXTRA.length];
 const pct = (a: number, b: number) => (b ? Math.round((a * 100) / b) : 0);
 
+async function toDataUrl(url: string): Promise<string | undefined> {
+  try { const res = await fetch(url); if (!res.ok) return undefined; const b = await res.blob(); return await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(String(fr.result)); fr.readAsDataURL(b); }); } catch { return undefined; }
+}
+async function loadAssets(): Promise<PdfAssets> {
+  const m = new Date().getMonth() + 1;
+  const [hdr, danantara, upt, pln] = await Promise.all([toDataUrl(`/pdf/hdr-${m}.jpg`), toDataUrl('/pdf/danantara.png'), toDataUrl('/pdf/upt.png'), toDataUrl('/pdf/pln.png')]);
+  return { hdr, danantara, upt, pln };
+}
+function PdfButton({ onClick, dark = false }: { onClick: () => Promise<void>; dark?: boolean }) {
+  const [busy, setBusy] = useState(false);
+  return (
+    <button title="Export PDF" disabled={busy} onClick={async () => { setBusy(true); try { await onClick(); } finally { setBusy(false); } }}
+      className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-extrabold shadow-sm disabled:opacity-60"
+      style={dark ? { background: '#FFC940', color: '#0B2340' } : { background: '#DC2626', color: '#fff' }}>
+      {busy ? <Loader2 size={14} className="animate-spin" /> : <FileDown size={14} />} PDF
+    </button>
+  );
+}
+
 type Tab = { name: string; gid: string; no: number };
 interface Loaded { title: string; events: UltgEvent[]; kinerja: UltgEvent[]; unmapped: UltgEvent[] }
 
-function UltgPanel({ name, events, kinerja }: { name: UltgName; events: UltgEvent[]; kinerja: UltgEvent[] }) {
+function UltgPanel({ name, events, kinerja, onPdf }: { name: UltgName; events: UltgEvent[]; kinerja: UltgEvent[]; onPdf: () => Promise<void> }) {
   const [open, setOpen] = useState(false);
   const total = events.length, rc = events.filter((e) => e.type === 'Reclose').length, tr = total - rc;
   const clusters = useMemo(() => {
@@ -34,7 +54,8 @@ function UltgPanel({ name, events, kinerja }: { name: UltgName; events: UltgEven
     <Card className="!p-0 overflow-hidden flex flex-col">
       <div className="px-5 py-3 flex items-center gap-2" style={{ background: '#0B2340' }}>
         <Zap size={20} color="#FFC940" fill="#FFC940" />
-        <div className="font-extrabold tracking-wide" style={{ color: '#FFC940' }}>MONITORING KINERJA ULTG {name}</div>
+        <div className="font-extrabold tracking-wide flex-1" style={{ color: '#FFC940' }}>MONITORING KINERJA ULTG {name}</div>
+        <PdfButton dark onClick={onPdf} />
       </div>
       <div className="p-5 space-y-6">
         <div>
@@ -116,7 +137,8 @@ function UltgPanel({ name, events, kinerja }: { name: UltgName; events: UltgEven
 }
 
 export default function Ultg() {
-  usePageSources([]);
+  usePageSources(['nko']);
+  const nkoSrc = useSource('nko');
   const [tabs, setTabs] = useState<Tab[] | null>(null);
   const [sel, setSel] = useState(0);
   const [data, setData] = useState<Loaded | null>(null);
@@ -145,9 +167,15 @@ export default function Ultg() {
   }, [tabs, sel, reload]);
 
   const bulan = LONG[sel - 1] ?? '';
+  const parts: UltgPdfPart[] = data ? (['PEKALONGAN', 'LAHAT'] as UltgName[]).map((u) => ({ name: u, events: data.events.filter((e) => e.ultg === u), kinerja: data.kinerja.filter((e) => e.ultg === u) })) : [];
+  const exportPdf = async (mode: 'ALL' | UltgName) => {
+    const nko = nkoSrc.data?.months.find((x) => x.monthNo === sel);
+    const { doc, fname } = await buildUltgPdf({ parts, mode, monthNo: sel, year: new Date().getFullYear(), nko, assets: await loadAssets() });
+    doc.save(fname);
+  };
   return (
     <div className="space-y-5">
-      <PageHeader title="Kinerja ULTG" subtitle={`Rekap gangguan per ULTG s.d. ${bulan} · sumber: Link Kinerja (REKAP GANGGUAN) & tab ASET`} />
+      <PageHeader title={<span className="inline-flex items-center gap-3">Kinerja ULTG {data && <PdfButton onClick={() => exportPdf('ALL')} />}</span>} subtitle={`Rekap gangguan per ULTG s.d. ${bulan} · sumber: Link Kinerja (REKAP GANGGUAN) & tab ASET`} />
       {tabs && (
         <div className="flex flex-wrap gap-2">
           {tabs.map((t) => <button key={t.no} className={`chip ${sel === t.no ? 'chip-on' : ''}`} onClick={() => setSel(t.no)}>{MONTHS[t.no - 1]}</button>)}
@@ -159,7 +187,7 @@ export default function Ultg() {
         <>
           <div className="grid gap-5 xl:grid-cols-2">
             {(['PEKALONGAN', 'LAHAT'] as UltgName[]).map((u) => (
-              <UltgPanel key={u} name={u} events={data.events.filter((e) => e.ultg === u)} kinerja={data.kinerja.filter((e) => e.ultg === u)} />
+              <UltgPanel key={u} name={u} events={data.events.filter((e) => e.ultg === u)} kinerja={data.kinerja.filter((e) => e.ultg === u)} onPdf={() => exportPdf(u)} />
             ))}
           </div>
           {data.unmapped.length > 0 && (
