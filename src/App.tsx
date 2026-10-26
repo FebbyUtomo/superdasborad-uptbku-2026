@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { Activity, Axe, Gauge, Images, LayoutDashboard, Menu, Moon, RefreshCw, ShieldAlert, Sun, TreePine, Zap, X } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 import { DataProvider, PageSourcesProvider, useData, usePageSourceKeys } from './lib/data';
 import { LoadingScreen, ThemeProvider, UptLogo, useTheme } from './components/ui';
 import Home from './pages/Home';
@@ -141,6 +142,7 @@ export default function App() {
           <BrowserRouter>
             {boot && <LoadingScreen full text="Menyiapkan dashboard…" />}
             <Shell />
+            <Analytics />
           </BrowserRouter>
         </PageSourcesProvider>
       </DataProvider>
