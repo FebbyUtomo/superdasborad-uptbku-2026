@@ -20,7 +20,7 @@ const isImg = (n) => /\.(jpe?g|png|webp|gif|heic)$/i.test(n);
 export default async function handler(req, res) {
   try {
     const month = req.query && req.query.month;
-    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
     if (!month) {
       const months = (await list(ROOT)).filter((e) => e.type === 'folder' && /^\d{4}\.\d{2}/.test(e.name))
         .sort((a, b) => b.name.localeCompare(a.name));

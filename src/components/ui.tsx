@@ -255,7 +255,7 @@ export function ExportButton<T>({ title, subtitle, cols, rows }: { title: string
 }
 
 /* ---------- loading / error ---------- */
-export function UptLogo({ size = 120 }: { size?: number }) {
+export function UptLogo({ size = 120 }: { size?: number | string }) {
   return (
     <div
       aria-label="Logo UPT Bengkulu"
@@ -266,7 +266,7 @@ export function UptLogo({ size = 120 }: { size?: number }) {
   );
 }
 export function LoadingScreen({ text = 'Memuat data…', full = false }: { text?: string; full?: boolean }) {
-  const size = full ? 340 : 220;
+  const size: number | string = full ? 'min(850px, 68vh, 88vw)' : 220;
   return (
     <div className={`flex flex-col items-center justify-center gap-4 ${full ? 'fixed inset-0 z-50' : 'py-16'}`} style={full ? { background: 'var(--bg)' } : undefined}>
       <div className="relative" style={{ width: size, height: size }}>
@@ -285,7 +285,7 @@ export function LoadingScreen({ text = 'Memuat data…', full = false }: { text?
           })}
         </svg>
         <div className="absolute inset-0 flex items-center justify-center pulse-logo" style={{ color: 'var(--heading)' }}>
-          <UptLogo size={size * 0.56} />
+          <UptLogo size={typeof size === 'number' ? size * 0.56 : '56%'} />
         </div>
       </div>
       <div className="h-section">{text}</div>
