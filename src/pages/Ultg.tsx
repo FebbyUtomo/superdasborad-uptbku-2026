@@ -38,10 +38,15 @@ function ThemeBanner({ onPdf, ready }: { onPdf: () => Promise<void>; ready: bool
   const [art, setArt] = useState(true);
   return (
     <div>
-      <div className="relative overflow-hidden rounded-2xl" style={{ background: '#0B2340', minHeight: 230 }}>
-        {art && <img src={`/pdf/hdr-${m}.jpg`} alt="" onError={() => setArt(false)}
-          className="absolute right-0 top-0 h-full object-cover" style={{ width: '82%', objectPosition: '0% 38%' }} />}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, #0B2340 0%, #0B2340 22%, rgba(11,35,64,.85) 36%, rgba(11,35,64,0) 58%)' }} />
+      <div className="relative overflow-hidden rounded-2xl h-[220px] sm:h-[260px]" style={{ background: '#0B2340' }}>
+        {art && (
+          <div className="absolute right-0 top-0 h-full w-[660px] sm:w-[780px] max-w-full">
+            <img src={`/pdf/hdr-${m}.jpg`} alt="" onError={() => setArt(false)}
+              className="h-full w-full object-cover" style={{ objectPosition: '50% 55%' }} />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, #0B2340 0%, rgba(11,35,64,.75) 14%, rgba(11,35,64,0) 34%)' }} />
+          </div>
+        )}
+        <div className="absolute inset-0 sm:hidden" style={{ background: 'linear-gradient(90deg, rgba(11,35,64,.92) 0%, rgba(11,35,64,.6) 60%, rgba(11,35,64,.1) 100%)' }} />
         <div className="relative p-5 sm:p-7 max-w-[560px]">
           <span className="inline-block rounded-lg px-3 py-1.5 text-xs sm:text-sm font-extrabold text-white" style={{ background: '#CE1126' }}>{th.badge.toUpperCase()}</span>
           <h1 className="mt-3 text-3xl sm:text-5xl font-extrabold text-white">Kinerja ULTG</h1>
