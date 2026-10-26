@@ -266,7 +266,7 @@ export function UptLogo({ size = 120 }: { size?: number | string }) {
   );
 }
 export function LoadingScreen({ text = 'Memuat data…', full = false }: { text?: string; full?: boolean }) {
-  const size: number | string = full ? 'min(850px, 68vh, 88vw)' : 220;
+  const size: number | string = 'min(850px, 68vh, 88vw)';
   return (
     <div className={`flex flex-col items-center justify-center gap-4 ${full ? 'fixed inset-0 z-50' : 'py-16'}`} style={full ? { background: 'var(--bg)' } : undefined}>
       <div className="relative" style={{ width: size, height: size }}>
