@@ -15,7 +15,7 @@ const colorOf = (n: string, i: number) => COLORS[n] ?? EXTRA[i % EXTRA.length];
 const pct = (a: number, b: number) => (b ? Math.round((a * 100) / b) : 0);
 
 async function toDataUrl(url: string): Promise<string | undefined> {
-  try { const res = await fetch(url); if (!res.ok) return undefined; const b = await res.blob(); return await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(String(fr.result)); fr.readAsDataURL(b); }); } catch { return undefined; }
+  try { const res = await fetch(url); if (!res.ok || !(res.headers.get('content-type') || '').startsWith('image/')) return undefined; const b = await res.blob(); return await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(String(fr.result)); fr.readAsDataURL(b); }); } catch { return undefined; }
 }
 async function loadAssets(): Promise<PdfAssets> {
   const m = new Date().getMonth() + 1;

@@ -1,16 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { BrowserRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { Activity, Axe, Gauge, Images, LayoutDashboard, Menu, Moon, RefreshCw, ShieldAlert, Sun, TreePine, Zap, X } from 'lucide-react';
 import { DataProvider, PageSourcesProvider, useData, usePageSourceKeys } from './lib/data';
 import { LoadingScreen, ThemeProvider, UptLogo, useTheme } from './components/ui';
-import Home from './pages/Home';
-import Kinerja from './pages/Kinerja';
-import Tegakan from './pages/Tegakan';
-import Penebangan from './pages/Penebangan';
-import Kerawanan from './pages/Kerawanan';
-import Gangguan from './pages/Gangguan';
-import Ultg from './pages/Ultg';
-import Galeri from './pages/Galeri';
+// Setiap halaman dimuat terpisah (code splitting) supaya loading awal lebih ringan.
+const Home = lazy(() => import('./pages/Home'));
+const Kinerja = lazy(() => import('./pages/Kinerja'));
+const Tegakan = lazy(() => import('./pages/Tegakan'));
+const Penebangan = lazy(() => import('./pages/Penebangan'));
+const Kerawanan = lazy(() => import('./pages/Kerawanan'));
+const Gangguan = lazy(() => import('./pages/Gangguan'));
+const Ultg = lazy(() => import('./pages/Ultg'));
+const Galeri = lazy(() => import('./pages/Galeri'));
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -113,6 +114,7 @@ function Shell() {
         <TopBar onMenu={() => setOpen(true)} />
         <main className="px-4 lg:px-8 py-6 max-w-[1700px] mx-auto">
           <ScrollTop />
+          <Suspense fallback={<LoadingScreen text="Membuka halaman…" />}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/kinerja" element={<Kinerja />} />
@@ -124,6 +126,7 @@ function Shell() {
             <Route path="/galeri" element={<Galeri />} />
             <Route path="*" element={<Home />} />
           </Routes>
+          </Suspense>
           <footer className="text-center text-[11px] t-muted py-8">© {new Date().getFullYear()} PLN UPT Bengkulu · Dikembangkan oleh <a href="https://www.linkedin.com/in/febbyutomo/" target="_blank" rel="noopener noreferrer" className="hover:underline">Febby P. Utomo</a></footer>
         </main>
       </div>
@@ -132,14 +135,11 @@ function Shell() {
 }
 
 export default function App() {
-  const [boot, setBoot] = useState(true);
-  useEffect(() => { const t = setTimeout(() => setBoot(false), 1400); return () => clearTimeout(t); }, []);
   return (
     <ThemeProvider>
       <DataProvider>
         <PageSourcesProvider>
           <BrowserRouter>
-            {boot && <LoadingScreen full text="Menyiapkan dashboard…" />}
             <Shell />
           </BrowserRouter>
         </PageSourcesProvider>
